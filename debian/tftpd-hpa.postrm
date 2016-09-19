@@ -1,0 +1,45 @@
+#!/bin/sh
+
+set -e
+
+case "${1}" in
+	remove)
+		if [ -e /etc/default/tftpd-hpa ]
+		then
+			. /etc/default/tftpd-hpa
+		fi
+
+		TFTP_USERNAME="${TFTP_USERNAME:-tftp}"
+		TFTP_DIRECTORY="${TFTP_DIRECTORY:-/srv/tftp}"
+
+		if [ -x /usr/sbin/deluser ]
+		then
+			deluser --quiet --system ${TFTP_USERNAME}
+		fi
+
+		for _DIRECTORY in ${TFTP_DIRECTORY}
+		do
+			if [ -d ${_DIRECTORY} ]
+			then
+				rmdir --ignore-fail-on-non-empty ${TFTP_DIRECTORY} > /dev/null 2>&1 || true
+			fi
+		done
+		;;
+
+	purge)
+		rm -f /etc/default/tftpd-hpa
+		;;
+
+	upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+
+		;;
+
+	*)
+		echo "postrm called with unknown argument \`${1}'" >&2
+		exit 1
+		;;
+esac
+
+#DEBHELPER#
+
+exit 0

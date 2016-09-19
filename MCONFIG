@@ -1,0 +1,71 @@
+## -*- makefile -*- ------------------------------------------------------
+##   
+##   Copyright 2001-2007 H. Peter Anvin - All Rights Reserved
+##
+##   This program is free software available under the same license
+##   as the "OpenBSD" operating system, distributed at
+##   http://www.openbsd.org/.
+##
+## ----------------------------------------------------------------------- 
+
+##
+## MCONFIG.in
+##
+## Basic Makefile definitions
+##
+
+# Source and object root
+SRCROOT	    = /Users/jtl/Development/tftpd-hpa
+OBJROOT     = /Users/jtl/Development/tftpd-hpa
+
+# Prefixes
+prefix      = /usr
+exec_prefix = ${prefix}
+
+# Directory for user binaries
+BINDIR  = ${exec_prefix}/bin
+
+# Man page tree
+MANDIR  = ${datarootdir}/man
+
+# System binaries
+SBINDIR = ${exec_prefix}/sbin
+
+# Data root directory
+datarootdir = ${prefix}/share
+
+# Binary suffixes
+O = o
+X = 
+
+# Install into alternate root area, e.g. for package generation
+INSTALLROOT = 
+
+# Link
+LN_S            = ln -s
+
+# Install program
+INSTALL         = /usr/local/bin/ginstall -c
+INSTALL_PROGRAM = ${INSTALL}
+INSTALL_DATA    = ${INSTALL} -m 644
+
+# Compiler and compiler flags
+CC      = gcc
+CFLAGS  = -g -O2 -W -Wall -Wpointer-arith -Wbad-function-cast -Wcast-equal -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Winline -Wwrite-strings -Wundef -Wshadow -Wsign-compare -pipe -fno-strict-aliasing -I$(SRCROOT)
+
+# Link flags
+LDFLAGS = 
+
+# Libraries (client and server)
+TFTP_LIBS  = ../common/libcommon.a -lreadline -ltermcap  /Users/jtl/Development/tftpd-hpa/lib/libxtra.a 
+TFTPD_LIBS = ../common/libcommon.a  /Users/jtl/Development/tftpd-hpa/lib/libxtra.a 
+
+# Additional library we need to build
+LIBOBJS	=  ${LIBOBJDIR}xmalloc$U.o ${LIBOBJDIR}xstrdup$U.o
+
+# Additional tftpd objects we need to build
+TFTPDOBJS = remap.o 
+
+# ar and ranlib (for making libraries)
+AR	= ar cq
+RANLIB	= ranlib
