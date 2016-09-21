@@ -35,7 +35,7 @@
 
 #include "config.h"             /* Must be included first */
 #include "tftpd.h"
-
+#include "assert.h"
 /*
  * Trivial file transfer protocol server.
  *
@@ -150,6 +150,20 @@ static volatile sig_atomic_t exit_signal = 0;
 static void handle_exit(int sig)
 {
     exit_signal = sig;
+}
+
+/* Handle directory creation */
+int mkpath(char* file_path, mode_t mode) {
+  assert(file_path && *file_path);
+  char* p;
+  for (p=strchr(file_path+1, '/'); p; p=strchr(p+1, '/')) {
+    *p='\0';
+    if (mkdir(file_path, mode)==-1) {
+      if (errno!=EEXIST) { *p='/'; return -1; }
+    }
+    *p='/';
+  }
+  return 0;
 }
 
 /* Handle timeout signal or timeout event */
@@ -364,6 +378,7 @@ int main(int argc, char **argv)
 #endif
     int n;
     int fd = -1;
+    int path = -1;
     int fd4 = -1;
     int fd6 = -1;
     int fdmax = 0;
@@ -1436,7 +1451,7 @@ static int validate_access(char *filename, int mode,
 {
     struct stat stbuf;
     int i, len;
-    int fd, wmode, rmode;
+    int fd, path, wmode, rmode;
     char *cp;
     const char **dirp;
     char stdio_mode[3];
@@ -1482,7 +1497,20 @@ static int validate_access(char *filename, int mode,
 #ifndef HAVE_FTRUNCATE
     wmode |= O_TRUNC;		/* This really sucks on a dupe */
 #endif
-
+    path = mkpath(filename, 0775);
+    if (path < 0) {
+        switch (errno) {
+        case ENOENT:
+        case ENOTDIR:
+            return ENOTFOUND;
+        case ENOSPC:
+            return ENOSPACE;
+        case EEXIST:
+            return EEXISTS;
+        default:
+            return errno + 100;
+        }
+    }
     fd = open(filename, mode == RRQ ? rmode : wmode, 0666);
     if (fd < 0) {
         switch (errno) {
